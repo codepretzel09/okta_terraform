@@ -1,0 +1,51 @@
+# Ansible playbook to create terraform human files based on a csv
+
+---
+- name: Create Human Files
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - read_csv:
+      path: ./humans.csv
+    register: humans
+  - name: create human file
+    copy:
+      dest: "./{{ user.first_name|lower }}.{{ user.last_name|lower }}.tf"
+      content: |
+           module "okta_add_user_{{ user.first_name }}_{{ user.last_name }}" {
+            # Okta attributes
+              source = "../modules/okta_user"
+              status = "STAGED"
+            # User Information
+              user_type = "{{ user.user_type }}"  
+              user_email = "{{ user.first_name|lower }}.{{ user.last_name|lower }}@redcanary.com"
+            # Name Information  
+              first_name = "{{ user.first_name }}"
+              last_name = "{{ user.last_name }}"
+              #     middleName = ""
+              #     honorificPrefix = ""
+              #     honorificSuffix = ""
+            # Contact Information
+              #     second_email = ""
+              mobile_phone = "{{ user.mobile_phone }}"
+            # Location Information
+              state = "{{ user.state }}"
+            # Job Information
+              organization = "{{ user.organization }}"
+              division = "{{ user.division }}"
+              department = "{{ user.department }}"
+              cost_center = "{{ user.cost_center }}"
+              title = "{{ user.title }}"
+              #     manager_id = ""
+              manager = "{{ user.manager }}"
+            # What groups are they a part of
+              groups = [
+                ]
+           }    
+    loop: "{{ humans.list }}"
+    loop_control:
+      loop_var: user 
+
+
+
+
